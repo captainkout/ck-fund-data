@@ -5,7 +5,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>ck_fund_data</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
+    <NoWarn>
+			1998,IDE0044,IDE1006,IDE0060,IDE0059,IDE0051,IDE0052,IDE1041,CA1041,IDE0060,IDE0037,IDE0017,IDE1006,IDE0083,CA1822,IDE0063,IDE0090,CA2254
+		</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +16,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    <PackageReference Include="ExcelDataREader.dataSet" Version="3.6.0" />
+    <PackageReference Include="newtonsoft.json" Version="13.0.1" />
+    <PackageReference Include="System.Text.Encoding.Codepages" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

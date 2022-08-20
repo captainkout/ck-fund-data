@@ -1,0 +1,17 @@
+{
+  "businessChannel": "RETAIL",
+  "currentPageNumber": 1,
+  "noOfRowsPerPage": 10000,
+  "searchFilter": {
+    "includeLeveragedAndInverseFunds": "N",
+    "openToNewInvestors": "OPEN,NEW,CLOSED",
+    "investmentTypeCode": "MFN",
+    "assetClass": "BAL",
+    "category": "XY,TU,RI,TE,CV,TA,TV,MA,XM,TJ,TN,AL,TH,TI,TK,TG,CA,IH,XQ,TD,TL",
+    "inceptionDate": { "lowerRange": "50", "upperRange": null }
+  },
+  "sortBy": "grossXpnsRatio",
+  "sortOrder": "desc",
+  "subjectAreaCode": "fundInformation,fundPicks,mstarCatgAvgRiskRatings,volatility,bestAvailableMonthlyPerformance,mstarRatings,dailyPerformance,expensesAndFees,portfolioManager,totalNetAssets,holdingCharacteristics,fundFeatures,mstarRankings,fixedIncomeCharacteristics,monthlyYields,distributions,dailyNAV",
+  "tabNames": "Risk,Overview,ManagementAndFees,MorningstarRankings,IncomeCharacteristics,ShortTermPerformance,DailyPricingAndYields"
+}
