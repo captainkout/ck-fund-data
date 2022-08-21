@@ -6,6 +6,8 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using ExcelDataReader;
 using FidelityFundApi;
@@ -134,6 +136,7 @@ var returnTasks = fundsFinal
     .Select(
         async (f, i) =>
         {
+            Thread.Sleep(500); // sleep because they cancel requests if it goes any faster
             if (i % 50 == 0)
                 Console.WriteLine(
                     $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Store Returns\t{i}/{fundsFinal.Length}"
