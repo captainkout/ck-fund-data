@@ -1,13 +1,11 @@
-using System.Reflection.Metadata;
-
 namespace FundData;
 
 public static class AppConsts
 {
     public const string fidelityApi =
         "https://fundresearch.fidelity.com/fund-screener/api/search/v1/funds/xlsx";
-    public const string fidelityOutputFile = "data\\FideltityData.xlsx";
-    public const string fundListFile = "data\\FundList.json";
+    public const string fidelityOutputFile = "..\\data\\FideltityData.xlsx";
+    public const string fundListFile = "..\\data\\FundList.json";
 
     public static string GetMorningStarRaw(string ticker)
     {
@@ -27,6 +25,6 @@ public static class AppConsts
 
     public static string GetReturnFile(string ticker)
     {
-        return $"returns\\{ticker}.json";
+        return $"..\\returns\\{ticker}.json";
     }
 }

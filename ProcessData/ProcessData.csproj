@@ -16,10 +16,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="ExcelDataReader" Version="3.6.0" />
-    <PackageReference Include="ExcelDataREader.dataSet" Version="3.6.0" />
     <PackageReference Include="newtonsoft.json" Version="13.0.1" />
     <PackageReference Include="System.Text.Encoding.Codepages" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\shared.csproj" />
   </ItemGroup>
 
 </Project>

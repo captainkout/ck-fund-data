@@ -13,4 +13,9 @@ public class Fund
     public string morningstarCode { get; set; }
 
     public MorningStarSeries Series { get; set; }
+
+    public override string ToString()
+    {
+        return $"{inception.ToShortDateString()}\t{category}\t{ticker}\t{name}";
+    }
 }

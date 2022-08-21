@@ -150,7 +150,7 @@ var returnTasks = fundsFinal
                 );
                 f.Series = series.First();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logs.AppendLine($"{f.ticker},{f.morningstarCode},{url}");
                 return null;
