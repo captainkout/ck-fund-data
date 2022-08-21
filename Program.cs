@@ -19,106 +19,107 @@ Console.WriteLine(
     $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tProgram executed with {JsonConvert.SerializeObject(args)}"
 );
 
-// Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+var logs = new StringBuilder();
 
-// // get list of resources from fidelity
-// var fidelityResponse = await new HttpClient().PostAsJsonAsync(
-//     AppConsts.fidelityApi,
-//     new FundListRequest()
-// );
-// var fidelityBytes = await fidelityResponse.Content.ReadAsByteArrayAsync();
-// await File.WriteAllBytesAsync(AppConsts.fidelityOutputFile, fidelityBytes);
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFund List Received");
+// get list of resources from fidelity
+var fidelityResponse = await new HttpClient().PostAsJsonAsync(
+    AppConsts.fidelityApi,
+    new FundListRequest()
+);
+var fidelityBytes = await fidelityResponse.Content.ReadAsByteArrayAsync();
+await File.WriteAllBytesAsync(AppConsts.fidelityOutputFile, fidelityBytes);
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFund List Received");
 
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tParsing Fund List");
-// var stream = new FileStream(AppConsts.fidelityOutputFile, FileMode.Open);
-// var reader = ExcelReaderFactory.CreateReader(stream);
-// var dataSet = reader.AsDataSet(
-//     new ExcelDataSetConfiguration()
-//     {
-//         ConfigureDataTable = (_) => new ExcelDataTableConfiguration() { UseHeaderRow = true }
-//     }
-// );
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tParsing Fund List");
+var stream = new FileStream(AppConsts.fidelityOutputFile, FileMode.Open);
+var reader = ExcelReaderFactory.CreateReader(stream);
+var dataSet = reader.AsDataSet(
+    new ExcelDataSetConfiguration()
+    {
+        ConfigureDataTable = (_) => new ExcelDataTableConfiguration() { UseHeaderRow = true }
+    }
+);
 
-// var funds = new List<Fund>();
-// for (var i = 0; i < dataSet.Tables[0].Rows.Count; i++)
-// {
-//     var rowData = dataSet.Tables[0].Rows[i][dataSet.Tables[0].Columns[0]].ToString();
-//     var formatted = rowData.Replace(",", "");
-//     var ticker = new Regex(@"\((.*?)\)").Match(formatted);
-//     if (ticker.Length == 0)
-//         break;
+var funds = new List<Fund>();
+for (var i = 0; i < dataSet.Tables[0].Rows.Count; i++)
+{
+    var rowData = dataSet.Tables[0].Rows[i][dataSet.Tables[0].Columns[0]].ToString();
+    var formatted = rowData.Replace(",", "");
+    var ticker = new Regex(@"\((.*?)\)").Match(formatted);
+    if (ticker.Length == 0)
+        break;
 
-//     var inception = DateTime.Parse(
-//         dataSet.Tables[2].Rows[i][dataSet.Tables[2].Columns[2]].ToString()
-//     );
-//     var category = dataSet.Tables[0].Rows[i][dataSet.Tables[0].Columns[1]].ToString();
-//     var expenseRatio = 100.0;
-//     try
-//     {
-//         double.Parse(
-//             dataSet.Tables[2].Rows[i][dataSet.Tables[2].Columns[8]].ToString().Replace("%", "")
-//         );
-//     }
-//     catch (Exception) { }
+    var inception = DateTime.Parse(
+        dataSet.Tables[2].Rows[i][dataSet.Tables[2].Columns[2]].ToString()
+    );
+    var category = dataSet.Tables[0].Rows[i][dataSet.Tables[0].Columns[1]].ToString();
+    var expenseRatio = 100.0;
+    try
+    {
+        double.Parse(
+            dataSet.Tables[2].Rows[i][dataSet.Tables[2].Columns[8]].ToString().Replace("%", "")
+        );
+    }
+    catch (Exception) { }
 
-//     funds.Add(
-//         new Fund()
-//         {
-//             name = formatted,
-//             ticker = ticker.Value.Trim('(').Trim(')'),
-//             inception = inception,
-//             category = category,
-//             expenseRatio = expenseRatio / 100.0
-//         }
-//     );
-// }
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFund List Parsed");
+    funds.Add(
+        new Fund()
+        {
+            name = formatted,
+            ticker = ticker.Value.Trim('(').Trim(')'),
+            inception = inception,
+            category = category,
+            expenseRatio = expenseRatio / 100.0
+        }
+    );
+}
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFund List Parsed");
 
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode MorningStar WebPage");
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode MorningStar WebPage");
 
-// // get morningstart data for each fund
-// var rawTasks = funds
-//     .Where(f => f.ticker.Length == 5)
-//     .Select(
-//         async (f, i) =>
-//         {
-//             if (i % 100 == 0)
-//                 Console.WriteLine(
-//                     $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode\t{i}/{funds.Count}"
-//                 );
+// get morningstart data for each fund
+var rawTasks = funds
+    .Where(f => f.ticker.Length == 5)
+    .Select(
+        async (f, i) =>
+        {
+            if (i % 100 == 0)
+                Console.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode\t{i}/{funds.Count}"
+                );
 
-//             var client = new HttpClient();
-//             var url = AppConsts.GetMorningStarRaw(f.ticker.ToLower());
-//             var request = new HttpRequestMessage(HttpMethod.Get, url);
-//             request.Headers.Authorization = new AuthenticationHeaderValue(
-//                 "Bearer",
-//                 AppConsts.morningstarToken
-//             );
-//             try
-//             {
-//                 var rsp = await client.SendAsync(request);
-//                 var raw = await rsp.Content.ReadAsStringAsync();
-//                 var morningstarRaw = new Regex(@"(?<=byId:)(.*?)}").Match(raw).Value;
-//                 f.morningstarCode = new Regex(@"(?<=,)(.*?)(?=:)").Match(morningstarRaw).Value;
-//             }
-//             catch (Exception e)
-//             {
-//                 Console.WriteLine(e.Message);
-//             }
+            var client = new HttpClient();
+            var url = AppConsts.GetMorningStarRaw(f.ticker.ToLower());
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                AppConsts.morningstarToken
+            );
+            try
+            {
+                var rsp = await client.SendAsync(request);
+                var raw = await rsp.Content.ReadAsStringAsync();
+                var morningstarRaw = new Regex(@"(?<=byId:)(.*?)}").Match(raw).Value;
+                f.morningstarCode = new Regex(@"(?<=,)(.*?)(?=:)").Match(morningstarRaw).Value;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
-//             return f;
-//         }
-//     )
-//     .ToList();
-// var rsps = await Task.WhenAll(rawTasks);
-// Console.WriteLine(
-//     $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode MorningStar WebPage Complete"
-// );
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tStore Fund Details");
-// await File.WriteAllTextAsync(AppConsts.fundListFile, JsonConvert.SerializeObject(rsps));
+            return f;
+        }
+    )
+    .ToList();
+var rsps = await Task.WhenAll(rawTasks);
+Console.WriteLine(
+    $"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch and Decode MorningStar WebPage Complete"
+);
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tStore Fund Details");
+await File.WriteAllTextAsync(AppConsts.fundListFile, JsonConvert.SerializeObject(rsps));
 
-// Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tRead Fund Details");
+Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tRead Fund Details");
 
 // read funds json
 var fundsFinal = JsonConvert
@@ -128,8 +129,7 @@ var fundsFinal = JsonConvert
     .Where(f => f.morningstarCode != null && f.morningstarCode != string.Empty)
     .ToArray();
 
-var logs = new StringBuilder();
-logs.AppendLine("Ticker,Code,Url");
+
 
 Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch Returns");
 var returnTasks = fundsFinal
@@ -193,4 +193,5 @@ var complete = await Task.WhenAll(stored);
 Console.WriteLine($"*** {DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \t Complete ***");
 
 // write Logs
-await File.WriteAllTextAsync($"logs\\run_{DateTime.Now:yyyy_MM_dd__HH_mm}.txt", logs.ToString());
+if (logs.Length > 0)
+    await File.WriteAllTextAsync($"logs\\run_{DateTime.Now:yyyy_MM_dd__HH_mm}.txt", logs.ToString());
