@@ -129,8 +129,6 @@ var fundsFinal = JsonConvert
     .Where(f => f.morningstarCode != null && f.morningstarCode != string.Empty)
     .ToArray();
 
-
-
 Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch Returns");
 var returnTasks = fundsFinal
     .Select(
@@ -194,4 +192,7 @@ Console.WriteLine($"*** {DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \t Complete ***");
 
 // write Logs
 if (logs.Length > 0)
-    await File.WriteAllTextAsync($"logs\\run_{DateTime.Now:yyyy_MM_dd__HH_mm}.txt", logs.ToString());
+    await File.WriteAllTextAsync(
+        $"logs\\run_{DateTime.Now:yyyy_MM_dd__HH_mm}.txt",
+        logs.ToString()
+    );
