@@ -119,16 +119,18 @@ Console.WriteLine(
 // Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tRead Fund Details");
 
 // read funds json
-var fundsFinal = JsonConvert.DeserializeObject<Fund[]>(
-    await File.ReadAllTextAsync(AppConsts.fundListFile)
-);
+var fundsFinal = JsonConvert
+    .DeserializeObject<Fund[]>(await File.ReadAllTextAsync(AppConsts.fundListFile))
+    .ToList()
+    .Where(f => !File.Exists($"returns\\{f.ticker}.json"))
+    .Where(f => f.morningstarCode != null && f.morningstarCode != string.Empty)
+    .ToArray();
 
 var logs = new StringBuilder();
 logs.AppendLine("Ticker,Code,Url");
 
 Console.WriteLine($"{DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \tFetch Returns");
 var returnTasks = fundsFinal
-    .Where(f => !File.Exists($"returns\\{f.ticker}.json"))
     .Select(
         async (f, i) =>
         {
@@ -155,7 +157,7 @@ var returnTasks = fundsFinal
             }
             catch (Exception e)
             {
-                logs.AppendLine($"{f.ticker},{f.morningstarCode},${url}");
+                logs.AppendLine($"{f.ticker},{f.morningstarCode},{url}");
                 return null;
             }
 
@@ -188,4 +190,4 @@ var complete = await Task.WhenAll(stored);
 Console.WriteLine($"*** {DateTime.Now:yyyy-MM-ddTHH:mm:ssK} \t Complete ***");
 
 // write Logs
-await File.WriteAllTextAsync($"logs\\run_{DateTime.Now:yyyy_MM_ddTHH:mm:ssK}", logs.ToString());
+await File.WriteAllTextAsync($"logs\\run_{DateTime.Now:yyyy_MM_dd__HH_mm}.txt", logs.ToString());
