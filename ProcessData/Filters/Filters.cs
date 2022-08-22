@@ -10,7 +10,7 @@ public class Filters
     // Straight Eq
     public static List<string> DomEq()
     {
-        return new List<string>() { "SLSAX", "NMFAX", "VFIAX" };
+        return new List<string>() { "NMFAX", "VFIAX", "CHTRX" };
     }
 
     public static List<string> IntEq()

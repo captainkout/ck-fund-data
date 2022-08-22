@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Net;
 using System.Security.AccessControl;
+using System.Text;
 using FidelityFundApi;
 using MorningStar;
 
@@ -7,11 +10,11 @@ namespace ProcessData;
 
 public class Strategy
 {
-    private Fund RiskOne;
+    public Fund RiskOne;
     private List<TickerChange> RiskOneChanges;
-    private Fund RiskTwo;
+    public Fund RiskTwo;
     private List<TickerChange> RiskTwoChanges;
-    private Fund Cash;
+    public Fund Cash;
     private List<TickerChange> CashChanges;
     private List<StrategyChange> StrategyChanges;
 
@@ -67,10 +70,93 @@ public class Strategy
             .Join(RiskTwoChanges, r1 => r1.Date, r2 => r2.Date, (r1, r2) => new { r1.Date, r1, r2 })
             .Join(CashChanges, r => r.Date, c => c.Date, (r, c) => new { r.Date, r.r1, r.r2, c })
             .ToList();
-        StrategyChanges = changes.Select(c =>
-        {
+        StrategyChanges = changes
+            .Aggregate(
+                new List<StrategyChange>(),
+                (p, c) =>
+                {
+                    // if (p.Count % 25 == 0)
+                    //     Console.WriteLine("kctest");
 
-            return new StrategyChange();
-        }).ToList();
+                    var last = p.LastOrDefault();
+                    var tradingDay = !p.Any() || (last?.Date.Month != c.Date.Month);
+                    var change =
+                        last?.Allocation == EnAllocation.RiskOne
+                            ? c.r1.Change
+                            : last?.Allocation == EnAllocation.RiskTwo
+                                ? c.r2.Change
+                                : (c.c.Change ?? 0);
+                    var newValue = last?.Value + last?.Value * change ?? 100;
+
+                    var sc = new StrategyChange()
+                    {
+                        Date = c.Date,
+                        Allocation = tradingDay
+                            ? (
+                                (
+                                    c.r1.LastYearChange > c.r2.LastYearChange
+                                    && c.r1.LastYearChange > c.c.LastYearChange
+                                )
+                                    ? EnAllocation.RiskOne
+                                    : (
+                                        c.r1.LastYearChange < c.r2.LastYearChange
+                                        && c.r2.LastYearChange > c.c.LastYearChange
+                                    )
+                                        ? EnAllocation.RiskTwo
+                                        : EnAllocation.Cash
+                            )
+                            : (last?.Allocation ?? EnAllocation.Cash), // same as yesterday
+                        LastAllocation = last?.Allocation ?? EnAllocation.Cash,
+                        LastValue = last?.Value ?? 100,
+                        Value = newValue,
+                        Change = (newValue - (last?.Value ?? 100)) / (last?.Value ?? 100)
+                    };
+
+                    p.Add(sc);
+                    return p;
+                }
+            )
+            .ToList();
+    }
+
+    public string ToCsv()
+    {
+        return RiskOneChanges
+            .Join(RiskTwoChanges, r1 => r1.Date, r2 => r2.Date, (r1, r2) => new { r1.Date, r1, r2 })
+            .Join(CashChanges, r => r.Date, c => c.Date, (r, c) => new { r.Date, r.r1, r.r2, c })
+            .Join(
+                StrategyChanges,
+                r => r.Date,
+                s => s.Date,
+                (r, s) => new { r.Date, r.r1, r.r2, r.c, s }
+            )
+            .Skip(1)
+            .Aggregate(
+                new StringBuilder(
+                    "Date,R1,R1_Change,R2,R2_Change,Cash,Cash_Change,Strategy_Allocation,Strategy,Strategy_Change,RiskAve_Change,AllAve_Change\r\n"
+                ),
+                (p, o) =>
+                    p.AppendLine(
+                        string.Join(
+                            ",",
+                            new List<string>()
+                            {
+                                o.Date.ToString("yyyy-MM-dd"),
+                                o.r1.NormValue.ToString(),
+                                o.r1.Change.ToString(),
+                                o.r2.NormValue.ToString(),
+                                o.r2.Change.ToString(),
+                                o.c.NormValue.ToString(),
+                                o.c.Change.ToString(),
+                                Enum.GetName(o.s.Allocation),
+                                o.s.Value.ToString(),
+                                o.s.Change.ToString(),
+                                ((o.r1.Change + o.r2.Change) / 2).ToString(),
+                                ((o.r1.Change + o.r2.Change + o.c.Change) / 3).ToString()
+                            }
+                        )
+                    )
+            )
+            .ToString();
     }
 }

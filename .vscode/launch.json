@@ -21,7 +21,7 @@
       "request": "launch",
       "preLaunchTask": "build-processdata",
       "program": "${workspaceFolder}/ProcessData/bin/Debug/net6.0/ProcessData.dll",
-      "args": [],
+      "args": ["--r1=RPBAX", "--r2=KTRAX"],
       "cwd": "${workspaceFolder}/ProcessData",
       "console": "internalConsole",
       "stopAtEntry": false

@@ -11,6 +11,6 @@ public static class AppConsts
 
     public static string GetStrategyFile(string riskone, string risktwo, DateTime start)
     {
-        return $"..\\strategy\\{riskone}_{risktwo}_{start:yyyy}.json";
+        return $"..\\strategy\\{riskone}_{risktwo}_{start:yyyy}.csv";
     }
 }
